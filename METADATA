@@ -1,7 +1,9 @@
-name: "bazel-skylib"
-description:
-    ""
+# This project was upgraded with external_updater.
+# Usage: tools/external_updater/updater.sh update bazel-skylib
+# For more info, check https://cs.android.com/android/platform/superproject/+/main:tools/external_updater/README.md
 
+name: "bazel-skylib"
+description: ""
 third_party {
   url {
     type: HOMEPAGE
@@ -11,6 +13,11 @@ third_party {
     type: GIT
     value: "https://github.com/bazelbuild/bazel-skylib.git"
   }
-  version: "1.2.1"
-  last_upgrade_date { year: 2022 month: 6 day: 21 }
+  license_type: NOTICE
+  version: "1.5.0"
+  last_upgrade_date {
+    year: 2023
+    month: 11
+    day: 20
+  }
 }

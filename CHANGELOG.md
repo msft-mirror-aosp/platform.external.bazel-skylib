@@ -1,3 +1,76 @@
+Release 1.5.0
+
+## What's Changed
+* Expose int- and string-valued build settings as Make variables by @fmeum in https://github.com/bazelbuild/bazel-skylib/pull/440
+* Modify actions in order not to need `toolchain` param  by @kotlaja in https://github.com/bazelbuild/bazel-skylib/pull/455
+* versions: Don't fail on Bazel dev builds by @fmeum in https://github.com/bazelbuild/bazel-skylib/pull/463
+* Add error for empty `bzl_library` by @keith in https://github.com/bazelbuild/bazel-skylib/pull/457
+* Add `doc` param to `unittest.make` by @UebelAndre in https://github.com/bazelbuild/bazel-skylib/pull/464
+
+## New Contributors
+* @kotlaja made their first contribution in https://github.com/bazelbuild/bazel-skylib/pull/455
+* @keith made their first contribution in https://github.com/bazelbuild/bazel-skylib/pull/457
+
+**Full Changelog**: https://github.com/bazelbuild/bazel-skylib/compare/1.4.2...1.5.0
+
+
+Release 1.4.2
+
+Bugfix release: fixes `build_test` to respect `target_compatible_with` (#448)
+
+**New Features**
+-   `bzl_library` allows `.scl` files (new Starlark dialect loadable by Bazel at
+    HEAD with `--experimental_enable_scl_dialect`)
+
+**Contributors**
+Alexandre Rostovtsev, UebelAndre, Vertexwahn, Xavier Bonaventura
+
+
+Release 1.4.1
+
+Bugfix release: fixes gazelle plugin failure with
+`--incompatible_disallow_empty_glob` (#431) and (for released versions) with
+`--incompatible_disable_starlark_host_transitions` (#433).
+
+**Contributors**
+Alexandre Rostovtsev, Chuck Grindel
+
+
+Release 1.4.0
+
+**New Features**
+-   The Gazelle plugin is marked stable for general use (#400, #424)
+
+**Other Notable Changes**
+-   copy_file/copy_directory again allow sandboxing (#392)
+
+**Contributors**
+Alexandre Rostovtsev, Nick Gooding, Simon Stewart, Xùdōng Yáng
+
+
+Release 1.3.0
+
+**New Features**
+-   Added `dicts.omit` and `dicts.pick` (#304)
+-   Added `expand_template` rule (#330)
+-   Added `subpackages` module (#348)
+-   Added `copy_directory` rule (#366)
+-   Added `bzlmod` support (#385)
+
+**Incompatible Changes**
+-   `native_binary` and `native_test` now use symlinks instead of copying, if
+    the OS supports it (#340)
+-   `native_binary` and `native_test` now build in target configuration instead
+    of host configuration (#341)
+-   `copy_file` no longer adds non-executables to `default_runfiles` (#326)
+
+**Contributors**
+
+Alex Eagle, Alexandre Rostovtsev, Barry McNamara, Derek Cormier, Fabian
+Meumertzheim, Geoffrey Martin-Noble, hchsiao, Kevin Kres, nickgooding,
+Vertexwahn, Vinh Tran
+
+
 Release 1.2.1
 
 Bugfix release: fixes build failure with --incompatible_disallow_empty_glob
