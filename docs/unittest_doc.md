@@ -2,12 +2,21 @@
 
 Unit testing support.
 
-Unlike most Skylib files, this exports two modules: `unittest` which contains
-functions to declare and define unit tests, and `asserts` which contains the
-assertions used to within tests.
+Unlike most Skylib files, this exports four modules:
+* `unittest` contains functions to declare and define unit tests for ordinary
+   Starlark functions;
+* `analysistest` contains functions to declare and define tests for analysis
+   phase behavior of a rule, such as a given target's providers or registered
+   actions;
+* `loadingtest` contains functions to declare and define tests for loading
+   phase behavior, such as macros and `native.*`;
+* `asserts` contains the assertions used within tests.
+
+See https://bazel.build/extending/concepts for background about macros, rules,
+and the different phases of a build.
 
 
-<a id="#unittest_toolchain"></a>
+<a id="unittest_toolchain"></a>
 
 ## unittest_toolchain
 
@@ -23,16 +32,16 @@ unittest_toolchain(<a href="#unittest_toolchain-name">name</a>, <a href="#unitte
 
 | Name  | Description | Type | Mandatory | Default |
 | :------------- | :------------- | :------------- | :------------- | :------------- |
-| <a id="unittest_toolchain-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/docs/build-ref.html#name">Name</a> | required |  |
-| <a id="unittest_toolchain-escape_chars_with"></a>escape_chars_with |  Dictionary of characters that need escaping in test failure message to prefix appended to escape those characters. For example, <code>{"%": "%", "&gt;": "^"}</code> would replace <code>%</code> with <code>%%</code> and <code>&gt;</code> with <code>^&gt;</code> in the failure message before that is included in <code>success_templ</code>.   | <a href="https://bazel.build/docs/skylark/lib/dict.html">Dictionary: String -> String</a> | optional | {} |
-| <a id="unittest_toolchain-escape_other_chars_with"></a>escape_other_chars_with |  String to prefix every character in test failure message which is not a key in <code>escape_chars_with</code> before including that in <code>success_templ</code>. For example, <code>""</code> would prefix every character in the failure message (except those in the keys of <code>escape_chars_with</code>) with <code>\</code>.   | String | optional | "" |
+| <a id="unittest_toolchain-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/concepts/labels#target-names">Name</a> | required |  |
+| <a id="unittest_toolchain-escape_chars_with"></a>escape_chars_with |  Dictionary of characters that need escaping in test failure message to prefix appended to escape those characters. For example, <code>{"%": "%", "&gt;": "^"}</code> would replace <code>%</code> with <code>%%</code> and <code>&gt;</code> with <code>^&gt;</code> in the failure message before that is included in <code>success_templ</code>.   | <a href="https://bazel.build/rules/lib/dict">Dictionary: String -> String</a> | optional | <code>{}</code> |
+| <a id="unittest_toolchain-escape_other_chars_with"></a>escape_other_chars_with |  String to prefix every character in test failure message which is not a key in <code>escape_chars_with</code> before including that in <code>success_templ</code>. For example, <code>""</code> would prefix every character in the failure message (except those in the keys of <code>escape_chars_with</code>) with <code>\</code>.   | String | optional | <code>""</code> |
 | <a id="unittest_toolchain-failure_templ"></a>failure_templ |  Test script template with a single <code>%s</code>. That placeholder is replaced with the lines in the failure message joined with the string specified in <code>join_with</code>. The resulting script should print the failure message and exit with non-zero status.   | String | required |  |
 | <a id="unittest_toolchain-file_ext"></a>file_ext |  File extension for test script, including leading dot.   | String | required |  |
 | <a id="unittest_toolchain-join_on"></a>join_on |  String used to join the lines in the failure message before including the resulting string in the script specified in <code>failure_templ</code>.   | String | required |  |
 | <a id="unittest_toolchain-success_templ"></a>success_templ |  Test script generated when the test passes. Should exit with status 0.   | String | required |  |
 
 
-<a id="#analysistest.make"></a>
+<a id="analysistest.make"></a>
 
 ## analysistest.make
 
@@ -86,7 +95,7 @@ A rule definition that should be stored in a global whose name ends in
 `_test`.
 
 
-<a id="#analysistest.begin"></a>
+<a id="analysistest.begin"></a>
 
 ## analysistest.begin
 
@@ -94,9 +103,9 @@ A rule definition that should be stored in a global whose name ends in
 analysistest.begin(<a href="#analysistest.begin-ctx">ctx</a>)
 </pre>
 
-Begins a unit test.
+Begins an analysis test.
 
-This should be the first function called in a unit test implementation
+This should be the first function called in an analysis test implementation
 function. It initializes a "test environment" that is used to collect
 assertion failures so that they can be reported and logged at the end of the
 test.
@@ -112,11 +121,11 @@ test.
 **RETURNS**
 
 A test environment struct that must be passed to assertions and finally to
-`unittest.end`. Do not rely on internal details about the fields in this
+`analysistest.end`. Do not rely on internal details about the fields in this
 struct as it may change.
 
 
-<a id="#analysistest.end"></a>
+<a id="analysistest.end"></a>
 
 ## analysistest.end
 
@@ -142,7 +151,7 @@ that the results are reported.
 A list of providers needed to automatically register the analysis test result.
 
 
-<a id="#analysistest.fail"></a>
+<a id="analysistest.fail"></a>
 
 ## analysistest.fail
 
@@ -161,7 +170,7 @@ Unconditionally causes the current test to fail.
 | <a id="analysistest.fail-msg"></a>msg |  The message to log describing the failure.   |  none |
 
 
-<a id="#analysistest.target_actions"></a>
+<a id="analysistest.target_actions"></a>
 
 ## analysistest.target_actions
 
@@ -183,7 +192,7 @@ Returns a list of actions registered by the target under test.
 A list of actions registered by the target under test
 
 
-<a id="#analysistest.target_bin_dir_path"></a>
+<a id="analysistest.target_bin_dir_path"></a>
 
 ## analysistest.target_bin_dir_path
 
@@ -205,7 +214,7 @@ Returns ctx.bin_dir.path for the target under test.
 Output bin dir path string.
 
 
-<a id="#analysistest.target_under_test"></a>
+<a id="analysistest.target_under_test"></a>
 
 ## analysistest.target_under_test
 
@@ -227,7 +236,7 @@ Returns the target under test.
 The target under test.
 
 
-<a id="#asserts.expect_failure"></a>
+<a id="asserts.expect_failure"></a>
 
 ## asserts.expect_failure
 
@@ -250,7 +259,7 @@ This requires that the analysis test is created with `analysistest.make()` and
 | <a id="asserts.expect_failure-expected_failure_msg"></a>expected_failure_msg |  The error message to expect as a result of analysis failures.   |  <code>""</code> |
 
 
-<a id="#asserts.equals"></a>
+<a id="asserts.equals"></a>
 
 ## asserts.equals
 
@@ -271,7 +280,7 @@ Asserts that the given `expected` and `actual` values are equal.
 | <a id="asserts.equals-msg"></a>msg |  An optional message that will be printed that describes the failure. If omitted, a default will be used.   |  <code>None</code> |
 
 
-<a id="#asserts.false"></a>
+<a id="asserts.false"></a>
 
 ## asserts.false
 
@@ -291,7 +300,7 @@ Asserts that the given `condition` is false.
 | <a id="asserts.false-msg"></a>msg |  An optional message that will be printed that describes the failure. If omitted, a default will be used.   |  <code>"Expected condition to be false, but was true."</code> |
 
 
-<a id="#asserts.set_equals"></a>
+<a id="asserts.set_equals"></a>
 
 ## asserts.set_equals
 
@@ -312,7 +321,7 @@ Asserts that the given `expected` and `actual` sets are equal.
 | <a id="asserts.set_equals-msg"></a>msg |  An optional message that will be printed that describes the failure. If omitted, a default will be used.   |  <code>None</code> |
 
 
-<a id="#asserts.new_set_equals"></a>
+<a id="asserts.new_set_equals"></a>
 
 ## asserts.new_set_equals
 
@@ -333,7 +342,7 @@ Asserts that the given `expected` and `actual` sets are equal.
 | <a id="asserts.new_set_equals-msg"></a>msg |  An optional message that will be printed that describes the failure. If omitted, a default will be used.   |  <code>None</code> |
 
 
-<a id="#asserts.true"></a>
+<a id="asserts.true"></a>
 
 ## asserts.true
 
@@ -353,7 +362,7 @@ Asserts that the given `condition` is true.
 | <a id="asserts.true-msg"></a>msg |  An optional message that will be printed that describes the failure. If omitted, a default will be used.   |  <code>"Expected condition to be true, but was false."</code> |
 
 
-<a id="#loadingtest.make"></a>
+<a id="loadingtest.make"></a>
 
 ## loadingtest.make
 
@@ -375,7 +384,7 @@ Creates a loading phase test environment and test_suite.
 loading phase environment passed to other loadingtest functions
 
 
-<a id="#loadingtest.equals"></a>
+<a id="loadingtest.equals"></a>
 
 ## loadingtest.equals
 
@@ -400,7 +409,7 @@ Creates a test case for asserting state at LOADING phase.
 None, creates test case
 
 
-<a id="#register_unittest_toolchains"></a>
+<a id="register_unittest_toolchains"></a>
 
 ## register_unittest_toolchains
 
@@ -412,12 +421,12 @@ Registers the toolchains for unittest users.
 
 
 
-<a id="#unittest.make"></a>
+<a id="unittest.make"></a>
 
 ## unittest.make
 
 <pre>
-unittest.make(<a href="#unittest.make-impl">impl</a>, <a href="#unittest.make-attrs">attrs</a>)
+unittest.make(<a href="#unittest.make-impl">impl</a>, <a href="#unittest.make-attrs">attrs</a>, <a href="#unittest.make-doc">doc</a>)
 </pre>
 
 Creates a unit test rule from its implementation function.
@@ -453,6 +462,7 @@ Recall that names of test rules must end in `_test`.
 | :------------- | :------------- | :------------- |
 | <a id="unittest.make-impl"></a>impl |  The implementation function of the unit test.   |  none |
 | <a id="unittest.make-attrs"></a>attrs |  An optional dictionary to supplement the attrs passed to the unit test's <code>rule()</code> constructor.   |  <code>{}</code> |
+| <a id="unittest.make-doc"></a>doc |  A description of the rule that can be extracted by documentation generating tools.   |  <code>""</code> |
 
 **RETURNS**
 
@@ -460,7 +470,7 @@ A rule definition that should be stored in a global whose name ends in
 `_test`.
 
 
-<a id="#unittest.suite"></a>
+<a id="unittest.suite"></a>
 
 ## unittest.suite
 
@@ -516,7 +526,7 @@ name each target.
 | <a id="unittest.suite-test_rules"></a>test_rules |  A list of test rules defines by <code>unittest.test</code>.   |  none |
 
 
-<a id="#unittest.begin"></a>
+<a id="unittest.begin"></a>
 
 ## unittest.begin
 
@@ -546,7 +556,7 @@ A test environment struct that must be passed to assertions and finally to
 struct as it may change.
 
 
-<a id="#unittest.end"></a>
+<a id="unittest.end"></a>
 
 ## unittest.end
 
@@ -572,7 +582,7 @@ that the results are reported.
 A list of providers needed to automatically register the test result.
 
 
-<a id="#unittest.fail"></a>
+<a id="unittest.fail"></a>
 
 ## unittest.fail
 
