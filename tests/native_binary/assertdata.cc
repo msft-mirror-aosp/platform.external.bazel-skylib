@@ -21,7 +21,7 @@
 
 using bazel::tools::cpp::runfiles::Runfiles;
 
-int main(int argc, char** argv) {
+int main(int argc, char **argv) {
   std::string error;
   std::unique_ptr<Runfiles> runfiles(Runfiles::Create(argv[0], &error));
   if (runfiles == nullptr) {
@@ -30,17 +30,23 @@ int main(int argc, char** argv) {
     return 1;
   }
 
-  // Even though this cc_binary rule has no data-dependencies, the
-  // native_binary that wraps a copy of this binary does, so we have some
-  // runfiles.
-  std::string path =
-      runfiles->Rlocation("bazel_skylib/tests/native_binary/testdata.txt");
-  if (path.empty()) {
-    fprintf(stderr, "ERROR(" __FILE__ ":%d): Could not find runfile\n",
+  char* workspace = getenv("TEST_WORKSPACE");
+  if (workspace == nullptr) {
+    fprintf(stderr, "ERROR(" __FILE__ ":%d): envvar TEST_WORKSPACE is undefined\n",
             __LINE__);
+    return 1;
   }
 
-  FILE* f = fopen(path.c_str(), "rt");
+  // This should have runfiles, either from the binary itself or from the
+  // native_test.
+  std::string path =
+      runfiles->Rlocation(std::string(workspace) + "/tests/native_binary/testdata.txt");
+  FILE *f = fopen(path.c_str(), "rt");
+  if (!f) {
+    fprintf(stderr, "ERROR(" __FILE__ ":%d): Could not find runfile '%s'\n",
+            __LINE__, path.c_str());
+  }
+
   char buf[6];
   size_t s = fread(buf, 1, 5, f);
   fclose(f);
@@ -53,4 +59,3 @@ int main(int argc, char** argv) {
 
   return 0;
 }
-
