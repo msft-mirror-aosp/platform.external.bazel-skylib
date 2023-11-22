@@ -18,7 +18,7 @@ These rules return a BuildSettingInfo with the value of the build setting.
 For label-typed settings, use the native label_flag and label_setting rules.
 
 More documentation on how to use build settings at
-https://docs.bazel.build/versions/main/skylark/config.html#user-defined-build-settings
+https://bazel.build/extending/config#user-defined-build-settings
 """
 
 BuildSettingInfo = provider(
@@ -30,18 +30,52 @@ BuildSettingInfo = provider(
     },
 )
 
+_MAKE_VARIABLE_ATTR = attr.string(
+    doc = "If set, the build setting's value will be available as a Make variable with this " +
+          "name in the attributes of rules that list this build setting in their 'toolchains' " +
+          "attribute.",
+)
+
+def _is_valid_make_variable_char(c):
+    # Restrict make variable names for consistency with predefined ones. There are no enforced
+    # restrictions on make variable names, but when they contain e.g. spaces or braces, they
+    # aren't expanded by e.g. cc_binary.
+    return c == "_" or c.isdigit() or (c.isalpha() and c.isupper())
+
+def _get_template_variable_info(ctx):
+    make_variable = getattr(ctx.attr, "make_variable", None)
+    if not make_variable:
+        return []
+
+    if not all([_is_valid_make_variable_char(c) for c in make_variable.elems()]):
+        fail("Error setting " + _no_at_str(ctx.label) + ": invalid make variable name '" + make_variable + "'. Make variable names may only contain uppercase letters, digits, and underscores.")
+
+    return [
+        platform_common.TemplateVariableInfo({
+            make_variable: str(ctx.build_setting_value),
+        }),
+    ]
+
 def _impl(ctx):
-    return BuildSettingInfo(value = ctx.build_setting_value)
+    return [
+        BuildSettingInfo(value = ctx.build_setting_value),
+    ] + _get_template_variable_info(ctx)
 
 int_flag = rule(
     implementation = _impl,
     build_setting = config.int(flag = True),
+    attrs = {
+        "make_variable": _MAKE_VARIABLE_ATTR,
+    },
     doc = "An int-typed build setting that can be set on the command line",
 )
 
 int_setting = rule(
     implementation = _impl,
     build_setting = config.int(),
+    attrs = {
+        "make_variable": _MAKE_VARIABLE_ATTR,
+    },
     doc = "An int-typed build setting that cannot be set on the command line",
 )
 
@@ -69,13 +103,22 @@ string_list_setting = rule(
     doc = "A string list-typed build setting that cannot be set on the command line",
 )
 
+def _no_at_str(label):
+    """Strips any leading '@'s for labels in the main repo, so that the error string is more friendly."""
+    s = str(label)
+    if s.startswith("@@//"):
+        return s[2:]
+    if s.startswith("@//"):
+        return s[1:]
+    return s
+
 def _string_impl(ctx):
     allowed_values = ctx.attr.values
     value = ctx.build_setting_value
     if len(allowed_values) == 0 or value in ctx.attr.values:
-        return BuildSettingInfo(value = value)
+        return [BuildSettingInfo(value = value)] + _get_template_variable_info(ctx)
     else:
-        fail("Error setting " + str(ctx.label) + ": invalid value '" + value + "'. Allowed values are " + str(allowed_values))
+        fail("Error setting " + _no_at_str(ctx.label) + ": invalid value '" + value + "'. Allowed values are " + str(allowed_values))
 
 string_flag = rule(
     implementation = _string_impl,
@@ -84,6 +127,7 @@ string_flag = rule(
         "values": attr.string_list(
             doc = "The list of allowed values for this setting. An error is raised if any other value is given.",
         ),
+        "make_variable": _MAKE_VARIABLE_ATTR,
     },
     doc = "A string-typed build setting that can be set on the command line",
 )
@@ -95,6 +139,7 @@ string_setting = rule(
         "values": attr.string_list(
             doc = "The list of allowed values for this setting. An error is raised if any other value is given.",
         ),
+        "make_variable": _MAKE_VARIABLE_ATTR,
     },
     doc = "A string-typed build setting that cannot be set on the command line",
 )
