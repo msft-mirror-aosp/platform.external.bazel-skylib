@@ -2,7 +2,7 @@
 
 Skylib module containing functions that operate on dictionaries.
 
-<a id="#dicts.add"></a>
+<a id="dicts.add"></a>
 
 ## dicts.add
 
@@ -32,5 +32,51 @@ dictionary, and the sum of a single dictionary is a copy of itself.
 **RETURNS**
 
 A new `dict` that has all the entries of the given dictionaries.
+
+
+<a id="dicts.omit"></a>
+
+## dicts.omit
+
+<pre>
+dicts.omit(<a href="#dicts.omit-dictionary">dictionary</a>, <a href="#dicts.omit-keys">keys</a>)
+</pre>
+
+Returns a new `dict` that has all the entries of `dictionary` with keys not in `keys`.
+
+**PARAMETERS**
+
+
+| Name  | Description | Default Value |
+| :------------- | :------------- | :------------- |
+| <a id="dicts.omit-dictionary"></a>dictionary |  A <code>dict</code>.   |  none |
+| <a id="dicts.omit-keys"></a>keys |  A sequence.   |  none |
+
+**RETURNS**
+
+A new `dict` that has all the entries of `dictionary` with keys not in `keys`.
+
+
+<a id="dicts.pick"></a>
+
+## dicts.pick
+
+<pre>
+dicts.pick(<a href="#dicts.pick-dictionary">dictionary</a>, <a href="#dicts.pick-keys">keys</a>)
+</pre>
+
+Returns a new `dict` that has all the entries of `dictionary` with keys in `keys`.
+
+**PARAMETERS**
+
+
+| Name  | Description | Default Value |
+| :------------- | :------------- | :------------- |
+| <a id="dicts.pick-dictionary"></a>dictionary |  A <code>dict</code>.   |  none |
+| <a id="dicts.pick-keys"></a>keys |  A sequence.   |  none |
+
+**RETURNS**
+
+A new `dict` that has all the entries of `dictionary` with keys in `keys`.
 
 
