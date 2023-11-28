@@ -14,9 +14,18 @@
 
 """Unit testing support.
 
-Unlike most Skylib files, this exports two modules: `unittest` which contains
-functions to declare and define unit tests, and `asserts` which contains the
-assertions used to within tests.
+Unlike most Skylib files, this exports four modules:
+* `unittest` contains functions to declare and define unit tests for ordinary
+   Starlark functions;
+* `analysistest` contains functions to declare and define tests for analysis
+   phase behavior of a rule, such as a given target's providers or registered
+   actions;
+* `loadingtest` contains functions to declare and define tests for loading
+   phase behavior, such as macros and `native.*`;
+* `asserts` contains the assertions used within tests.
+
+See https://bazel.build/extending/concepts for background about macros, rules,
+and the different phases of a build.
 """
 
 load(":new_sets.bzl", new_sets = "sets")
@@ -139,7 +148,7 @@ def _impl_function_name(impl):
     impl_name = impl_name.partition("<function ")[-1]
     return impl_name.rpartition(">")[0]
 
-def _make(impl, attrs = {}):
+def _make(impl, attrs = {}, doc = ""):
     """Creates a unit test rule from its implementation function.
 
     Each unit test is defined in an implementation function that must then be
@@ -169,6 +178,7 @@ def _make(impl, attrs = {}):
       impl: The implementation function of the unit test.
       attrs: An optional dictionary to supplement the attrs passed to the
           unit test's `rule()` constructor.
+      doc: A description of the rule that can be extracted by documentation generating tools.
 
     Returns:
       A rule definition that should be stored in a global whose name ends in
@@ -179,6 +189,7 @@ def _make(impl, attrs = {}):
 
     return rule(
         impl,
+        doc = doc,
         attrs = attrs,
         _skylark_testable = True,
         test = True,
@@ -360,6 +371,25 @@ def _begin(ctx):
     Returns:
       A test environment struct that must be passed to assertions and finally to
       `unittest.end`. Do not rely on internal details about the fields in this
+      struct as it may change.
+    """
+    return struct(ctx = ctx, failures = [])
+
+def _begin_analysis_test(ctx):
+    """Begins an analysis test.
+
+    This should be the first function called in an analysis test implementation
+    function. It initializes a "test environment" that is used to collect
+    assertion failures so that they can be reported and logged at the end of the
+    test.
+
+    Args:
+      ctx: The Starlark context. Pass the implementation function's `ctx` argument
+          in verbatim.
+
+    Returns:
+      A test environment struct that must be passed to assertions and finally to
+      `analysistest.end`. Do not rely on internal details about the fields in this
       struct as it may change.
     """
     return struct(ctx = ctx, failures = [])
@@ -647,7 +677,7 @@ unittest = struct(
 
 analysistest = struct(
     make = _make_analysis_test,
-    begin = _begin,
+    begin = _begin_analysis_test,
     end = _end_analysis_test,
     fail = _fail,
     target_actions = _target_actions,
