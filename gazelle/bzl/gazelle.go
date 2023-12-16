@@ -111,7 +111,7 @@ func (*bzlLibraryLang) Fix(c *config.Config, f *rule.File) {}
 // returned, including an empty slice, the rule will be indexed.
 func (b *bzlLibraryLang) Imports(c *config.Config, r *rule.Rule, f *rule.File) []resolve.ImportSpec {
 	srcs := r.AttrStrings("srcs")
-	imports := make([]resolve.ImportSpec, len(srcs))
+	imports := make([]resolve.ImportSpec, 0, len(srcs))
 
 	for _, src := range srcs {
 		spec := resolve.ImportSpec{
@@ -173,7 +173,7 @@ func (*bzlLibraryLang) Resolve(c *config.Config, ix *resolve.RuleIndex, rc *repo
 
 		if impLabel.Repo != "" || !c.IndexLibraries {
 			// This is a dependency that is external to the current repo, or indexing
-			// is disabled so take a guess at what hte target name should be.
+			// is disabled so take a guess at what the target name should be.
 			deps = append(deps, strings.TrimSuffix(imp, fileType))
 			continue
 		}
